@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@theme {
+  /* Ana renkler - Terminal/Hacker koyu yeşil tema */
+  --color-bg-primary: #101512;
+  --color-bg-secondary: #212428;
+  --color-bg-tertiary: #2a2e33;
+  --color-bg-hover: #1a1f1c;
+  --color-bg-active: #2d3630;
+
+  /* Border renkleri */
+  --color-border-primary: #2a2e33;
+  --color-border-secondary: #3a4040;
+  --color-border-focus: #76ff9f;
+
+  /* Metin renkleri */
+  --color-text-primary: #e8e8e8;
+  --color-text-secondary: #8a8f98;
+  --color-text-muted: #555a63;
+
+  /* Vurgu renkleri */
+  --color-accent: #76ff9f;
+  --color-accent-hover: #5edc82;
+  --color-secondary: #418655;
+  --color-success: #76ff9f;
+  --color-warning: #ffc107;
+  --color-danger: #ff6b6b;
+  --color-info: #4ecdc4;
+
+  /* Bağlantı renkleri (prod/dev/staging ayırımı) */
+  --color-conn-red: #ef4444;
+  --color-conn-orange: #f97316;
+  --color-conn-yellow: #eab308;
+  --color-conn-green: #22c55e;
+  --color-conn-blue: #3b82f6;
+  --color-conn-purple: #a855f7;
+  --color-conn-pink: #ec4899;
+  --color-conn-gray: #6b7280;
+
+  /* Font ailesi */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* Scrollbar stilleri */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-primary);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-primary);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-secondary);
+  }
+}

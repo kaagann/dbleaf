@@ -1,0 +1,60 @@
+{
+  "sidebar": {
+    "tables": "Tables ({{count}})",
+    "views": "Views ({{count}})",
+    "functions": "Functions ({{count}})",
+    "sequences": "Sequences ({{count}})",
+    "emptySchema": "Empty schema"
+  },
+  "structure": {
+    "columns": "Columns",
+    "indexes": "Indexes",
+    "foreignKeys": "Foreign Keys",
+    "loadError": "Failed to load structure",
+    "colName": "Column Name",
+    "dataType": "Data Type",
+    "defaultVal": "Default",
+    "noCols": "No columns found",
+    "indexName": "Index Name",
+    "indexColumns": "Columns",
+    "indexType": "Type",
+    "noIndexes": "No indexes found",
+    "fkName": "Constraint Name",
+    "fkColumn": "Column",
+    "fkRefTable": "Reference Table",
+    "fkRefColumn": "Reference Column",
+    "noForeignKeys": "No foreign keys found"
+  },
+  "table": {
+    "loadError": "Failed to load data",
+    "saveError": "Save error",
+    "deleteError": "Delete error",
+    "insertError": "Insert error",
+    "insertMinCol": "At least one column value is required",
+    "addRow": "Add new row",
+    "deleteSelected": "Delete selected",
+    "deleteCount": "Delete ({{count}})",
+    "pendingChanges": "{{count}} pending changes",
+    "noPkWarning": "This table has no primary key — editing disabled",
+    "editRow": "Edit Row",
+    "addNewRow": "Add New Row",
+    "setNull": "Set as NULL",
+    "defaultValue": "Default: {{value}}"
+  },
+  "sql": {
+    "execute": "Execute",
+    "executeError": "Query execution failed",
+    "placeholder": "Write your SQL query here... (⌘+Enter to execute)",
+    "resultPlaceholder": "Query results will appear here"
+  },
+  "tabs": {
+    "newQuery": "New query tab (⌘T)",
+    "query": "Query"
+  },
+  "emptyState": {
+    "selectTable": "Select a table from the left panel",
+    "or": "or",
+    "newQueryTab": "new query tab",
+    "open": "open"
+  }
+}

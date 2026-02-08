@@ -1,0 +1,60 @@
+{
+  "sidebar": {
+    "tables": "Tablolar ({{count}})",
+    "views": "View'lar ({{count}})",
+    "functions": "Fonksiyonlar ({{count}})",
+    "sequences": "Sequence'lar ({{count}})",
+    "emptySchema": "Boş şema"
+  },
+  "structure": {
+    "columns": "Kolonlar",
+    "indexes": "İndeksler",
+    "foreignKeys": "Foreign Key",
+    "loadError": "Yapı bilgisi yüklenemedi",
+    "colName": "Kolon Adı",
+    "dataType": "Veri Tipi",
+    "defaultVal": "Varsayılan",
+    "noCols": "Kolon bulunamadı",
+    "indexName": "İndeks Adı",
+    "indexColumns": "Kolonlar",
+    "indexType": "Tip",
+    "noIndexes": "İndeks bulunamadı",
+    "fkName": "Constraint Adı",
+    "fkColumn": "Kolon",
+    "fkRefTable": "Referans Tablo",
+    "fkRefColumn": "Referans Kolon",
+    "noForeignKeys": "Foreign key bulunamadı"
+  },
+  "table": {
+    "loadError": "Veri yüklenemedi",
+    "saveError": "Kaydetme hatası",
+    "deleteError": "Silme hatası",
+    "insertError": "Ekleme hatası",
+    "insertMinCol": "En az bir kolon değeri girilmelidir",
+    "addRow": "Yeni satır ekle",
+    "deleteSelected": "Seçilenleri sil",
+    "deleteCount": "Sil ({{count}})",
+    "pendingChanges": "{{count}} değişiklik bekliyor",
+    "noPkWarning": "Bu tabloda birincil anahtar yok — düzenleme devre dışı",
+    "editRow": "Satır Düzenle",
+    "addNewRow": "Yeni Satır Ekle",
+    "setNull": "NULL olarak ayarla",
+    "defaultValue": "Varsayılan: {{value}}"
+  },
+  "sql": {
+    "execute": "Çalıştır",
+    "executeError": "Sorgu çalıştırılamadı",
+    "placeholder": "SQL sorgunuzu buraya yazın... (⌘+Enter ile çalıştır)",
+    "resultPlaceholder": "Sorgu sonuçları burada görünecek"
+  },
+  "tabs": {
+    "newQuery": "Yeni sorgu sekmesi (⌘T)",
+    "query": "Sorgu"
+  },
+  "emptyState": {
+    "selectTable": "Sol panelden bir tablo seçin",
+    "or": "veya",
+    "newQueryTab": "yeni sorgu sekmesi",
+    "open": "açın"
+  }
+}

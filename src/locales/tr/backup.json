@@ -1,0 +1,32 @@
+{
+  "backup": {
+    "title": "Veritabanı Yedekle",
+    "button": "Yedekle",
+    "running": "Yedekleniyor...",
+    "saveDialog": "Yedek Dosyasını Kaydet",
+    "dbLabel": "Veritabanı: ",
+    "formatLabel": "Yedek Formatı",
+    "error": "Yedekleme başarısız",
+    "sqlFormat": "Düz metin SQL dosyası",
+    "customFormat": "Sıkıştırılmış özel format (pg_restore ile)",
+    "tarFormat": "Tar arşiv formatı"
+  },
+  "restore": {
+    "title": "Veritabanı Geri Yükle",
+    "button": "Geri Yükle",
+    "running": "Geri yükleniyor...",
+    "selectFile": "Yedek Dosyasını Seç",
+    "fileLabel": "Yedek Dosyası",
+    "fileBackups": "Yedek Dosyaları",
+    "filePlaceholder": "Dosya seçmek için tıklayın...",
+    "targetDb": "Hedef veritabanı: ",
+    "warning": "Dikkat: Geri yükleme mevcut verilerin üzerine yazabilir. Bu işlem geri alınamaz.",
+    "error": "Geri yükleme başarısız"
+  },
+  "topBar": {
+    "backupTitle": "Veritabanını Yedekle",
+    "backupButton": "Yedekle",
+    "restoreTitle": "Veritabanını Geri Yükle",
+    "restoreButton": "Geri Yükle"
+  }
+}

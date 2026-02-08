@@ -1,0 +1,32 @@
+{
+  "backup": {
+    "title": "Backup Database",
+    "button": "Backup",
+    "running": "Backing up...",
+    "saveDialog": "Save Backup File",
+    "dbLabel": "Database: ",
+    "formatLabel": "Backup Format",
+    "error": "Backup failed",
+    "sqlFormat": "Plain text SQL file",
+    "customFormat": "Compressed custom format (with pg_restore)",
+    "tarFormat": "Tar archive format"
+  },
+  "restore": {
+    "title": "Restore Database",
+    "button": "Restore",
+    "running": "Restoring...",
+    "selectFile": "Select Backup File",
+    "fileLabel": "Backup File",
+    "fileBackups": "Backup Files",
+    "filePlaceholder": "Click to select file...",
+    "targetDb": "Target database: ",
+    "warning": "Warning: Restore may overwrite existing data. This action cannot be undone.",
+    "error": "Restore failed"
+  },
+  "topBar": {
+    "backupTitle": "Backup Database",
+    "backupButton": "Backup",
+    "restoreTitle": "Restore Database",
+    "restoreButton": "Restore"
+  }
+}
