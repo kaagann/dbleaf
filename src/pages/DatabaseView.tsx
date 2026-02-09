@@ -11,13 +11,16 @@ import SqlEditor from "../components/SqlEditor";
 import TableStructure from "../components/TableStructure";
 import QueryHistory from "../components/QueryHistory";
 import ERDiagram from "../components/ERDiagram";
+import AiChat from "../components/AiChat";
 import CommandPalette from "../components/CommandPalette";
 import { useTranslation } from "react-i18next";
+import { useAiStore } from "../stores/aiStore";
 
 export default function DatabaseView() {
   const navigate = useNavigate();
   const { activeConnectionId } = useConnectionStore();
   const { tabs, activeTabId, openQueryTab, openHistoryTab, closeTab } = useTabStore();
+  const { togglePanel: toggleAiPanel } = useAiStore();
   const { t } = useTranslation("database");
   const [showPalette, setShowPalette] = useState(false);
 
@@ -47,6 +50,11 @@ export default function DatabaseView() {
       if (isMod && e.key === "k") {
         e.preventDefault();
         setShowPalette((v) => !v);
+      }
+
+      if (isMod && e.key === "i") {
+        e.preventDefault();
+        toggleAiPanel();
       }
 
       if (isMod && e.key === "w") {
@@ -183,6 +191,9 @@ export default function DatabaseView() {
             )}
           </div>
         </div>
+
+        {/* AI Chat Panel */}
+        <AiChat />
       </div>
     </div>
     <CommandPalette isOpen={showPalette} onClose={() => setShowPalette(false)} />

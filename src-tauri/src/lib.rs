@@ -1,3 +1,4 @@
+mod ai;
 mod backup;
 mod db;
 mod query_history;
@@ -329,6 +330,32 @@ async fn get_er_diagram_data(
     queries::get_er_diagram_data(&client, &schema).await
 }
 
+#[tauri::command]
+async fn save_ai_settings(settings: ai::AiSettings) -> Result<(), String> {
+    ai::save_ai_settings(&settings)
+}
+
+#[tauri::command]
+async fn load_ai_settings() -> Result<ai::AiSettings, String> {
+    ai::load_ai_settings()
+}
+
+#[tauri::command]
+async fn ai_chat(
+    connection_id: String,
+    messages: Vec<ai::ChatMessage>,
+    db_context: String,
+    channel: tauri::ipc::Channel<ai::AiStreamEvent>,
+    state: tauri::State<'_, AppConnectionManager>,
+) -> Result<(), String> {
+    let settings = ai::load_ai_settings()?;
+    let client = {
+        let manager = state.lock().await;
+        manager.get_client(&connection_id)?
+    };
+    ai::ai_chat(&client, messages, &settings, &db_context, channel).await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -367,6 +394,9 @@ pub fn run() {
             clear_query_history,
             explain_query,
             get_er_diagram_data,
+            save_ai_settings,
+            load_ai_settings,
+            ai_chat,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

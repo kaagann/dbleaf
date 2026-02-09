@@ -375,7 +375,7 @@ pub struct TableColumnMeta {
     pub data_type: String,
 }
 
-fn pg_value_to_json(row: &tokio_postgres::Row, idx: usize, col_type: &Type) -> serde_json::Value {
+pub fn pg_value_to_json(row: &tokio_postgres::Row, idx: usize, col_type: &Type) -> serde_json::Value {
     // Try to get the value as various types, fallback to text
     match *col_type {
         Type::BOOL => row

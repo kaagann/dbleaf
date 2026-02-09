@@ -9,8 +9,10 @@ import {
   HardDriveUpload,
   Globe,
   Lock,
+  Bot,
 } from "lucide-react";
 import { useConnectionStore } from "../stores/connectionStore";
+import { useAiStore } from "../stores/aiStore";
 import { useDatabaseStore } from "../stores/databaseStore";
 import type { ConnectionColor } from "../types/connection";
 import BackupDialog from "./BackupDialog";
@@ -35,6 +37,7 @@ export default function TopBar() {
   const { connections, activeConnectionId, disconnectFromDb } =
     useConnectionStore();
   const { reset } = useDatabaseStore();
+  const { isPanelOpen, togglePanel: toggleAiPanel } = useAiStore();
   const [showBackup, setShowBackup] = useState(false);
   const [showRestore, setShowRestore] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -163,6 +166,19 @@ export default function TopBar() {
               </div>
             )}
           </div>
+          <div className="mx-1 h-4 w-px bg-border-primary" />
+          <button
+            onClick={toggleAiPanel}
+            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
+              isPanelOpen
+                ? "bg-accent/10 text-accent"
+                : "text-text-muted hover:bg-bg-hover hover:text-text-primary"
+            }`}
+            title="AI Assistant (⌘I)"
+          >
+            <Bot className="h-3.5 w-3.5" />
+            <span>AI</span>
+          </button>
           <div className="mx-1 h-4 w-px bg-border-primary" />
           <button
             onClick={handleDisconnect}

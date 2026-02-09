@@ -1,0 +1,38 @@
+{
+  "panel": {
+    "title": "AI Asistan",
+    "placeholder": "Veritabanınız hakkında bir soru sorun...",
+    "send": "Gönder",
+    "newChat": "Yeni Sohbet",
+    "thinking": "Düşünüyor...",
+    "toolCall": "Araç Çağrısı",
+    "toolResult": "Sonuç",
+    "showDetails": "Detayları göster",
+    "hideDetails": "Detayları gizle",
+    "noApiKey": "API anahtarı ayarlanmamış",
+    "setApiKey": "Ayarla",
+    "rows": "{{count}} satır",
+    "errorPrefix": "Hata",
+    "copyQuery": "Sorguyu kopyala",
+    "emptyTitle": "AI Asistan'a Hoş Geldiniz",
+    "emptyDesc": "Veritabanınız hakkında sorular sorun, sorgu yazın veya veri analizi yapın."
+  },
+  "settings": {
+    "title": "AI Ayarları",
+    "apiKeyLabel": "OpenAI API Anahtarı",
+    "apiKeyPlaceholder": "sk-...",
+    "modelLabel": "Model",
+    "save": "Kaydet",
+    "saved": "Kaydedildi!"
+  },
+  "quickPrompts": {
+    "describeSchema": "Veritabanı şema özetini göster",
+    "largestTables": "En büyük tabloları listele",
+    "recentData": "Son eklenen verileri göster",
+    "indexSuggestions": "İndeks önerileri ver",
+    "dataRelationships": "Tablo ilişkilerini açıkla"
+  },
+  "topBar": {
+    "toggle": "AI Asistan"
+  }
+}

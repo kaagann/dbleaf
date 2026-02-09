@@ -1,0 +1,38 @@
+{
+  "panel": {
+    "title": "AI Assistant",
+    "placeholder": "Ask a question about your database...",
+    "send": "Send",
+    "newChat": "New Chat",
+    "thinking": "Thinking...",
+    "toolCall": "Tool Call",
+    "toolResult": "Result",
+    "showDetails": "Show details",
+    "hideDetails": "Hide details",
+    "noApiKey": "API key not configured",
+    "setApiKey": "Configure",
+    "rows": "{{count}} rows",
+    "errorPrefix": "Error",
+    "copyQuery": "Copy query",
+    "emptyTitle": "Welcome to AI Assistant",
+    "emptyDesc": "Ask questions about your database, write queries, or analyze data."
+  },
+  "settings": {
+    "title": "AI Settings",
+    "apiKeyLabel": "OpenAI API Key",
+    "apiKeyPlaceholder": "sk-...",
+    "modelLabel": "Model",
+    "save": "Save",
+    "saved": "Saved!"
+  },
+  "quickPrompts": {
+    "describeSchema": "Show database schema overview",
+    "largestTables": "List the largest tables",
+    "recentData": "Show recently added data",
+    "indexSuggestions": "Suggest indexes",
+    "dataRelationships": "Explain table relationships"
+  },
+  "topBar": {
+    "toggle": "AI Assistant"
+  }
+}
