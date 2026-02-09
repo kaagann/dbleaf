@@ -4,7 +4,8 @@
     "views": "View'lar ({{count}})",
     "functions": "Fonksiyonlar ({{count}})",
     "sequences": "Sequence'lar ({{count}})",
-    "emptySchema": "Boş şema"
+    "emptySchema": "Boş şema",
+    "erDiagram": "ER Diyagramı"
   },
   "structure": {
     "columns": "Kolonlar",
@@ -45,7 +46,38 @@
     "execute": "Çalıştır",
     "executeError": "Sorgu çalıştırılamadı",
     "placeholder": "SQL sorgunuzu buraya yazın... (⌘+Enter ile çalıştır)",
-    "resultPlaceholder": "Sorgu sonuçları burada görünecek"
+    "resultPlaceholder": "Sorgu sonuçları burada görünecek",
+    "explain": "Açıkla",
+    "explainTooltip": "⌘+Shift+Enter"
+  },
+  "explain": {
+    "planningTime": "Planlama Süresi",
+    "executionTime": "Yürütme Süresi",
+    "totalCost": "Toplam Maliyet",
+    "cost": "Maliyet",
+    "time": "Zaman",
+    "rows": "Satır",
+    "detail": {
+      "nodeType": "Düğüm Tipi",
+      "relation": "Tablo",
+      "schema": "Şema",
+      "alias": "Takma Ad",
+      "joinType": "Join Tipi",
+      "indexName": "İndeks",
+      "startupCost": "Başlangıç Maliyeti",
+      "totalCost": "Toplam Maliyet",
+      "planRows": "Tahmini Satır",
+      "actualRows": "Gerçek Satır",
+      "actualTime": "Gerçek Süre",
+      "actualLoops": "Döngü Sayısı",
+      "filter": "Filtre",
+      "indexCond": "İndeks Koşulu",
+      "hashCond": "Hash Koşulu",
+      "rowsRemovedByFilter": "Filtrelenen Satır",
+      "sharedHitBlocks": "Paylaşılan Hit Blok",
+      "sharedReadBlocks": "Paylaşılan Okunan Blok",
+      "extraFields": "Ek Alanlar"
+    }
   },
   "tabs": {
     "newQuery": "Yeni sorgu sekmesi (⌘T)",
@@ -56,5 +88,59 @@
     "or": "veya",
     "newQueryTab": "yeni sorgu sekmesi",
     "open": "açın"
+  },
+  "history": {
+    "title": "Sorgu Geçmişi",
+    "searchPlaceholder": "Sorgu ara...",
+    "filterAll": "Tümü",
+    "filterFavorites": "Favoriler",
+    "filterErrors": "Hatalar",
+    "filterSlow": "Yavaş",
+    "empty": "Henüz sorgu geçmişi yok",
+    "emptyDesc": "SQL editörde çalıştırdığınız sorgular burada görünecek",
+    "clearHistory": "Geçmişi Temizle",
+    "clearConfirm": "Tüm sorgu geçmişi silinecek. Emin misiniz?",
+    "rowCount": "{{count}} satır",
+    "openInEditor": "Editörde Aç",
+    "errorLabel": "Hata"
+  },
+  "palette": {
+    "placeholder": "Tablo, view veya komut ara...",
+    "noResults": "Sonuç bulunamadı",
+    "categories": {
+      "table": "Tablolar",
+      "view": "View'lar",
+      "function": "Fonksiyonlar",
+      "sequence": "Sequence'lar",
+      "tab": "Açık Sekmeler",
+      "action": "Aksiyonlar"
+    },
+    "newQuery": "Yeni Sorgu Sekmesi",
+    "openHistory": "Sorgu Geçmişi",
+    "closeAllTabs": "Tüm Sekmeleri Kapat",
+    "switchTab": "Sekmeye geç",
+    "rows": "~{{count}} satır",
+    "runQuery": "Sorguyu Çalıştır",
+    "runQueryHint": "Hızlı sonuç göster",
+    "openInEditorAction": "Editörde Aç",
+    "executing": "Çalıştırılıyor...",
+    "quickResults": "Hızlı Sonuç",
+    "resultRows": "{{count}} satır",
+    "resultAffected": "{{count}} satır etkilendi",
+    "moreRows": "+{{count}} satır daha...",
+    "openFullResults": "Tam sonucu editörde aç"
+  },
+  "erDiagram": {
+    "title": "ER Diyagramı",
+    "loading": "Diyagram yükleniyor...",
+    "empty": "Bu şemada tablo bulunamadı",
+    "zoomIn": "Yakınlaştır",
+    "zoomOut": "Uzaklaştır",
+    "resetZoom": "Sıfırla",
+    "fitToScreen": "Ekrana sığdır",
+    "pkLabel": "PK",
+    "fkLabel": "FK",
+    "columns": "{{count}} kolon",
+    "relationships": "{{count}} ilişki"
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MousePointerClick } from "lucide-react";
 import { useConnectionStore } from "../stores/connectionStore";
@@ -9,13 +9,17 @@ import TabBar from "../components/TabBar";
 import DataTable from "../components/DataTable";
 import SqlEditor from "../components/SqlEditor";
 import TableStructure from "../components/TableStructure";
+import QueryHistory from "../components/QueryHistory";
+import ERDiagram from "../components/ERDiagram";
+import CommandPalette from "../components/CommandPalette";
 import { useTranslation } from "react-i18next";
 
 export default function DatabaseView() {
   const navigate = useNavigate();
   const { activeConnectionId } = useConnectionStore();
-  const { tabs, activeTabId, openQueryTab, closeTab } = useTabStore();
+  const { tabs, activeTabId, openQueryTab, openHistoryTab, closeTab } = useTabStore();
   const { t } = useTranslation("database");
+  const [showPalette, setShowPalette] = useState(false);
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
@@ -35,6 +39,16 @@ export default function DatabaseView() {
         openQueryTab();
       }
 
+      if (isMod && e.key === "y") {
+        e.preventDefault();
+        openHistoryTab();
+      }
+
+      if (isMod && e.key === "k") {
+        e.preventDefault();
+        setShowPalette((v) => !v);
+      }
+
       if (isMod && e.key === "w") {
         e.preventDefault();
         if (activeTabId) {
@@ -45,11 +59,12 @@ export default function DatabaseView() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeTabId, openQueryTab, closeTab]);
+  }, [activeTabId, openQueryTab, openHistoryTab, closeTab]);
 
   if (!activeConnectionId) return null;
 
   return (
+    <>
     <div className="flex h-full flex-col">
       <TopBar />
       <div className="flex flex-1 overflow-hidden">
@@ -119,6 +134,34 @@ export default function DatabaseView() {
                       />
                     </div>
                   ))}
+
+                {/* History tabs */}
+                {tabs
+                  .filter((t) => t.type === "history")
+                  .map((tab) => (
+                    <div
+                      key={tab.id}
+                      className={`h-full ${
+                        activeTabId === tab.id ? "" : "hidden"
+                      }`}
+                    >
+                      <QueryHistory />
+                    </div>
+                  ))}
+
+                {/* ER Diagram tabs */}
+                {tabs
+                  .filter((t) => t.type === "er-diagram")
+                  .map((tab) => (
+                    <div
+                      key={tab.id}
+                      className={`h-full ${
+                        activeTabId === tab.id ? "" : "hidden"
+                      }`}
+                    >
+                      <ERDiagram schema={tab.schema!} />
+                    </div>
+                  ))}
               </>
             ) : (
               <div className="flex h-full items-center justify-center text-text-muted">
@@ -142,5 +185,7 @@ export default function DatabaseView() {
         </div>
       </div>
     </div>
+    <CommandPalette isOpen={showPalette} onClose={() => setShowPalette(false)} />
+    </>
   );
 }

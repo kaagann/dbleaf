@@ -8,6 +8,7 @@ import {
   Hash,
   Loader2,
   Layers,
+  GitFork,
 } from "lucide-react";
 import { useConnectionStore } from "../stores/connectionStore";
 import {
@@ -32,7 +33,7 @@ export default function Sidebar() {
     loadSequences,
     loadCompletions,
   } = useDatabaseStore();
-  const { tabs, activeTabId, openTableTab } = useTabStore();
+  const { tabs, activeTabId, openTableTab, openErDiagramTab } = useTabStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
   const [expandedSchemas, setExpandedSchemas] = useState<Set<string>>(new Set());
@@ -127,18 +128,30 @@ export default function Sidebar() {
         return (
           <div key={schema.name}>
             {/* Schema node */}
-            <button
-              onClick={() => toggleSchema(schema.name)}
-              className="flex w-full items-center gap-1.5 px-3 py-1 text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-colors"
-            >
-              {isExpanded ? (
-                <ChevronDown className="h-3.5 w-3.5 shrink-0" />
-              ) : (
-                <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-              )}
-              <Layers className="h-3.5 w-3.5 shrink-0 text-text-muted" />
-              <span className="truncate">{schema.name}</span>
-            </button>
+            <div className="group flex w-full items-center">
+              <button
+                onClick={() => toggleSchema(schema.name)}
+                className="flex flex-1 items-center gap-1.5 px-3 py-1 text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-colors"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+                ) : (
+                  <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                )}
+                <Layers className="h-3.5 w-3.5 shrink-0 text-text-muted" />
+                <span className="truncate">{schema.name}</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openErDiagramTab(schema.name);
+                }}
+                className="opacity-0 group-hover:opacity-100 mr-2 p-0.5 text-text-muted hover:text-accent rounded hover:bg-bg-hover transition-all"
+                title={t("sidebar.erDiagram")}
+              >
+                <GitFork className="h-3 w-3" />
+              </button>
+            </div>
 
             {isExpanded && (
               <div className="ml-3">

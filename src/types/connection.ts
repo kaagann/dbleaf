@@ -8,6 +8,8 @@ export type ConnectionColor =
   | "pink"
   | "gray";
 
+export type SshAuthMethod = "password" | "key" | "key_passphrase";
+
 export interface ConnectionConfig {
   id: string;
   name: string;
@@ -20,6 +22,15 @@ export interface ConnectionConfig {
   color: ConnectionColor;
   lastConnectedAt?: string;
   createdAt: string;
+  // SSH Tunnel
+  useSshTunnel: boolean;
+  sshHost: string;
+  sshPort: number;
+  sshUsername: string;
+  sshAuthMethod: SshAuthMethod;
+  sshPassword: string;
+  sshKeyPath: string;
+  sshPassphrase: string;
 }
 
 export function parseConnectionString(connStr: string): Partial<ConnectionConfig> {

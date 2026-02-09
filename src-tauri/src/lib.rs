@@ -1,5 +1,7 @@
 mod backup;
 mod db;
+mod query_history;
+mod ssh_tunnel;
 mod storage;
 
 use db::connection::{create_connection_manager, AppConnectionManager};
@@ -250,9 +252,14 @@ async fn backup_database(
     config: ConnectionConfig,
     format: String,
     output_path: String,
+    state: tauri::State<'_, AppConnectionManager>,
 ) -> Result<backup::BackupResult, String> {
+    let tunnel_port = {
+        let manager = state.lock().await;
+        manager.get_tunnel_port(&config.id)
+    };
     tokio::task::spawn_blocking(move || {
-        backup::backup_database(&config, &format, &output_path)
+        backup::backup_database(&config, &format, &output_path, tunnel_port)
     })
     .await
     .map_err(|e| format!("Yedekleme görevi başarısız: {}", e))?
@@ -262,12 +269,64 @@ async fn backup_database(
 async fn restore_database(
     config: ConnectionConfig,
     input_path: String,
+    state: tauri::State<'_, AppConnectionManager>,
 ) -> Result<backup::RestoreResult, String> {
+    let tunnel_port = {
+        let manager = state.lock().await;
+        manager.get_tunnel_port(&config.id)
+    };
     tokio::task::spawn_blocking(move || {
-        backup::restore_database(&config, &input_path)
+        backup::restore_database(&config, &input_path, tunnel_port)
     })
     .await
     .map_err(|e| format!("Geri yükleme görevi başarısız: {}", e))?
+}
+
+#[tauri::command]
+async fn add_query_history(entry: query_history::QueryHistoryEntry) -> Result<(), String> {
+    query_history::add_history_entry(entry)
+}
+
+#[tauri::command]
+async fn get_query_history() -> Result<Vec<query_history::QueryHistoryEntry>, String> {
+    query_history::load_history()
+}
+
+#[tauri::command]
+async fn toggle_query_favorite(id: String) -> Result<(), String> {
+    query_history::toggle_favorite(&id)
+}
+
+#[tauri::command]
+async fn delete_query_history_entry(id: String) -> Result<(), String> {
+    query_history::delete_history_entry(&id)
+}
+
+#[tauri::command]
+async fn clear_query_history() -> Result<(), String> {
+    query_history::clear_history()
+}
+
+#[tauri::command]
+async fn explain_query(
+    connection_id: String,
+    sql: String,
+    state: tauri::State<'_, AppConnectionManager>,
+) -> Result<queries::ExplainResult, String> {
+    let manager = state.lock().await;
+    let client = manager.get_client(&connection_id)?;
+    queries::explain_query(&client, &sql).await
+}
+
+#[tauri::command]
+async fn get_er_diagram_data(
+    connection_id: String,
+    schema: String,
+    state: tauri::State<'_, AppConnectionManager>,
+) -> Result<queries::ErDiagramData, String> {
+    let manager = state.lock().await;
+    let client = manager.get_client(&connection_id)?;
+    queries::get_er_diagram_data(&client, &schema).await
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -301,6 +360,13 @@ pub fn run() {
             delete_rows,
             backup_database,
             restore_database,
+            add_query_history,
+            get_query_history,
+            toggle_query_favorite,
+            delete_query_history_entry,
+            clear_query_history,
+            explain_query,
+            get_er_diagram_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

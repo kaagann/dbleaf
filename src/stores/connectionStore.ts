@@ -16,6 +16,15 @@ function toRustConfig(conn: ConnectionConfig) {
     color: conn.color,
     last_connected_at: conn.lastConnectedAt || null,
     created_at: conn.createdAt,
+    // SSH Tunnel
+    use_ssh_tunnel: conn.useSshTunnel ?? false,
+    ssh_host: conn.sshHost ?? "",
+    ssh_port: conn.sshPort ?? 22,
+    ssh_username: conn.sshUsername ?? "",
+    ssh_auth_method: conn.sshAuthMethod ?? "password",
+    ssh_password: conn.sshPassword ?? "",
+    ssh_key_path: conn.sshKeyPath ?? "",
+    ssh_passphrase: conn.sshPassphrase ?? "",
   };
 }
 
@@ -33,6 +42,15 @@ function fromRustConfig(raw: any): ConnectionConfig {
     color: raw.color,
     lastConnectedAt: raw.last_connected_at || undefined,
     createdAt: raw.created_at,
+    // SSH Tunnel
+    useSshTunnel: raw.use_ssh_tunnel ?? false,
+    sshHost: raw.ssh_host ?? "",
+    sshPort: raw.ssh_port ?? 22,
+    sshUsername: raw.ssh_username ?? "",
+    sshAuthMethod: raw.ssh_auth_method ?? "password",
+    sshPassword: raw.ssh_password ?? "",
+    sshKeyPath: raw.ssh_key_path ?? "",
+    sshPassphrase: raw.ssh_passphrase ?? "",
   };
 }
 

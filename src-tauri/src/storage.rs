@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use crate::db::models::ConnectionConfig;
 
-fn get_storage_dir() -> Result<PathBuf, String> {
+pub fn get_storage_dir() -> Result<PathBuf, String> {
     let dir = dirs::data_dir()
         .ok_or("Veri dizini bulunamadı")?
         .join("pg-manager");

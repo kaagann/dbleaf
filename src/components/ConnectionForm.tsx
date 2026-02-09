@@ -8,11 +8,14 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
+  KeyRound,
 } from "lucide-react";
+import { open } from "@tauri-apps/plugin-dialog";
 import { useConnectionStore } from "../stores/connectionStore";
 import type {
   ConnectionConfig,
   ConnectionColor,
+  SshAuthMethod,
 } from "../types/connection";
 import { parseConnectionString, buildConnectionString } from "../types/connection";
 import { useTranslation } from "react-i18next";
@@ -60,6 +63,17 @@ export default function ConnectionForm({
   const [sslMode, setSslMode] = useState(false);
   const [color, setColor] = useState<ConnectionColor>("blue");
 
+  // SSH Tunnel state
+  const [useSshTunnel, setUseSshTunnel] = useState(false);
+  const [sshHost, setSshHost] = useState("");
+  const [sshPort, setSshPort] = useState("22");
+  const [sshUsername, setSshUsername] = useState("");
+  const [sshAuthMethod, setSshAuthMethod] = useState<SshAuthMethod>("password");
+  const [sshPassword, setSshPassword] = useState("");
+  const [sshKeyPath, setSshKeyPath] = useState("");
+  const [sshPassphrase, setSshPassphrase] = useState("");
+  const [showSshPassword, setShowSshPassword] = useState(false);
+
   useEffect(() => {
     if (editingConnection) {
       setName(editingConnection.name);
@@ -71,6 +85,15 @@ export default function ConnectionForm({
       setSslMode(editingConnection.sslMode);
       setColor(editingConnection.color);
       setConnString(buildConnectionString(editingConnection));
+      // SSH fields
+      setUseSshTunnel(editingConnection.useSshTunnel ?? false);
+      setSshHost(editingConnection.sshHost ?? "");
+      setSshPort(String(editingConnection.sshPort ?? 22));
+      setSshUsername(editingConnection.sshUsername ?? "");
+      setSshAuthMethod(editingConnection.sshAuthMethod ?? "password");
+      setSshPassword(editingConnection.sshPassword ?? "");
+      setSshKeyPath(editingConnection.sshKeyPath ?? "");
+      setSshPassphrase(editingConnection.sshPassphrase ?? "");
     }
   }, [editingConnection]);
 
@@ -98,6 +121,14 @@ export default function ConnectionForm({
       color,
       createdAt: editingConnection?.createdAt || new Date().toISOString(),
       lastConnectedAt: editingConnection?.lastConnectedAt,
+      useSshTunnel,
+      sshHost,
+      sshPort: parseInt(sshPort) || 22,
+      sshUsername,
+      sshAuthMethod,
+      sshPassword,
+      sshKeyPath,
+      sshPassphrase,
     };
     onSave(conn);
   }
@@ -117,6 +148,14 @@ export default function ConnectionForm({
         sslMode,
         color,
         createdAt: new Date().toISOString(),
+        useSshTunnel,
+        sshHost,
+        sshPort: parseInt(sshPort) || 22,
+        sshUsername,
+        sshAuthMethod,
+        sshPassword,
+        sshKeyPath,
+        sshPassphrase,
       };
       const version = await testConnection(conn);
       setTestResult({ ok: true, message: version });
@@ -127,9 +166,22 @@ export default function ConnectionForm({
     }
   }
 
+  async function handlePickKeyFile() {
+    const selected = await open({
+      multiple: false,
+      filters: [
+        { name: "SSH Keys", extensions: ["pem", "ppk", "key", "pub", ""] },
+      ],
+    });
+    if (selected && typeof selected === "string") {
+      setSshKeyPath(selected);
+    }
+  }
+
+  const sshValid = !useSshTunnel || (sshHost && sshUsername);
   const isValid = mode === "string"
-    ? (connString.trim().length > 0 && host && username)
-    : (host && username);
+    ? (connString.trim().length > 0 && host && username && sshValid)
+    : (host && username && sshValid);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -174,7 +226,7 @@ export default function ConnectionForm({
         </div>
 
         {/* Body */}
-        <div className="space-y-4 px-6 py-5">
+        <div className="space-y-4 px-6 py-5 max-h-[70vh] overflow-y-auto">
           {mode === "string" ? (
             <>
               {/* Connection String */}
@@ -364,6 +416,166 @@ export default function ConnectionForm({
                   />
                 </button>
                 <span className="text-sm text-text-secondary">{t("form.ssl")}</span>
+              </div>
+
+              {/* SSH Tunnel Toggle */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setUseSshTunnel(!useSshTunnel)}
+                  className={`relative h-5 w-9 rounded-full transition-colors ${
+                    useSshTunnel ? "bg-accent" : "bg-bg-active"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform ${
+                      useSshTunnel ? "translate-x-4" : ""
+                    }`}
+                  />
+                </button>
+                <div className="flex items-center gap-1.5">
+                  <KeyRound className="h-3.5 w-3.5 text-text-secondary" />
+                  <span className="text-sm text-text-secondary">{t("form.sshTunnel")}</span>
+                </div>
+              </div>
+
+              {/* SSH Tunnel Fields */}
+              <div
+                className={`overflow-hidden transition-all duration-300 ${
+                  useSshTunnel ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                }`}
+              >
+                <div className="space-y-3 rounded-lg border border-border-primary bg-bg-primary p-4">
+                  {/* SSH Host + Port */}
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <label className="mb-1.5 block text-xs text-text-secondary">
+                        {t("form.sshHost")}
+                      </label>
+                      <input
+                        value={sshHost}
+                        onChange={(e) => setSshHost(e.target.value)}
+                        placeholder={t("form.sshHostPlaceholder")}
+                        className="w-full rounded-lg border border-border-primary bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border-focus focus:outline-none"
+                      />
+                    </div>
+                    <div className="w-24">
+                      <label className="mb-1.5 block text-xs text-text-secondary">
+                        {t("form.sshPort")}
+                      </label>
+                      <input
+                        value={sshPort}
+                        onChange={(e) => setSshPort(e.target.value)}
+                        placeholder="22"
+                        className="w-full rounded-lg border border-border-primary bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border-focus focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* SSH Username */}
+                  <div>
+                    <label className="mb-1.5 block text-xs text-text-secondary">
+                      {t("form.sshUsername")}
+                    </label>
+                    <input
+                      value={sshUsername}
+                      onChange={(e) => setSshUsername(e.target.value)}
+                      placeholder={t("form.sshUsernamePlaceholder")}
+                      className="w-full rounded-lg border border-border-primary bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border-focus focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Auth Method Selector */}
+                  <div>
+                    <label className="mb-1.5 block text-xs text-text-secondary">
+                      {t("form.sshAuthMethod")}
+                    </label>
+                    <div className="flex gap-1 rounded-lg border border-border-primary bg-bg-secondary p-1">
+                      {(["password", "key", "key_passphrase"] as const).map((method) => (
+                        <button
+                          key={method}
+                          type="button"
+                          onClick={() => setSshAuthMethod(method)}
+                          className={`flex-1 rounded-md px-2 py-1.5 text-xs transition-colors ${
+                            sshAuthMethod === method
+                              ? "bg-bg-active text-text-primary"
+                              : "text-text-secondary hover:text-text-primary"
+                          }`}
+                        >
+                          {t(`form.sshAuth.${method}`)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Password field */}
+                  {sshAuthMethod === "password" && (
+                    <div>
+                      <label className="mb-1.5 block text-xs text-text-secondary">
+                        {t("form.sshPassword")}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showSshPassword ? "text" : "password"}
+                          value={sshPassword}
+                          onChange={(e) => setSshPassword(e.target.value)}
+                          placeholder={t("form.passwordPlaceholder")}
+                          className="w-full rounded-lg border border-border-primary bg-bg-secondary px-3 py-2 pr-9 text-sm text-text-primary placeholder:text-text-muted focus:border-border-focus focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowSshPassword(!showSshPassword)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary"
+                        >
+                          {showSshPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Key file picker */}
+                  {(sshAuthMethod === "key" || sshAuthMethod === "key_passphrase") && (
+                    <>
+                      <div>
+                        <label className="mb-1.5 block text-xs text-text-secondary">
+                          {t("form.sshKeyPath")}
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            value={sshKeyPath}
+                            readOnly
+                            placeholder={t("form.sshKeyPathPlaceholder")}
+                            className="flex-1 rounded-lg border border-border-primary bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border-focus focus:outline-none font-mono truncate"
+                          />
+                          <button
+                            type="button"
+                            onClick={handlePickKeyFile}
+                            className="shrink-0 rounded-lg border border-border-primary px-3 py-2 text-xs text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-colors"
+                          >
+                            {t("form.browse")}
+                          </button>
+                        </div>
+                      </div>
+                      {sshAuthMethod === "key_passphrase" && (
+                        <div>
+                          <label className="mb-1.5 block text-xs text-text-secondary">
+                            {t("form.sshPassphrase")}
+                          </label>
+                          <input
+                            type="password"
+                            value={sshPassphrase}
+                            onChange={(e) => setSshPassphrase(e.target.value)}
+                            placeholder={t("form.sshPassphrasePlaceholder")}
+                            className="w-full rounded-lg border border-border-primary bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border-focus focus:outline-none"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </>
           )}

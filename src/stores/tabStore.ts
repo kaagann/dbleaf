@@ -12,7 +12,7 @@ export interface TabState {
 
 export interface Tab {
   id: string;
-  type: "table" | "query" | "structure";
+  type: "table" | "query" | "structure" | "history" | "er-diagram";
   title: string;
   schema?: string;
   table?: string;
@@ -38,6 +38,8 @@ interface TabStore {
   ) => void;
   openStructureTab: (schema: string, table: string) => void;
   openQueryTab: (sql?: string) => void;
+  openHistoryTab: () => void;
+  openErDiagramTab: (schema: string) => void;
   closeTab: (tabId: string) => void;
   setActiveTab: (tabId: string) => void;
   promotePreview: (tabId: string) => void;
@@ -144,6 +146,55 @@ export const useTabStore = create<TabStore>()((set, get) => ({
       isPreview: false,
       isDirty: false,
       state: { sql: sql || "" },
+    };
+
+    set({ tabs: [...tabs, newTab], activeTabId: tabId });
+  },
+
+  openHistoryTab: () => {
+    const { tabs } = get();
+    const tabId = "history";
+
+    const existing = tabs.find((t) => t.id === tabId);
+    if (existing) {
+      set({ activeTabId: tabId });
+      return;
+    }
+
+    if (tabs.length >= MAX_TABS) return;
+
+    const newTab: Tab = {
+      id: tabId,
+      type: "history",
+      title: "Sorgu Geçmişi",
+      isPreview: false,
+      isDirty: false,
+      state: {},
+    };
+
+    set({ tabs: [...tabs, newTab], activeTabId: tabId });
+  },
+
+  openErDiagramTab: (schema) => {
+    const { tabs } = get();
+    const tabId = `er-diagram-${schema}`;
+
+    const existing = tabs.find((t) => t.id === tabId);
+    if (existing) {
+      set({ activeTabId: tabId });
+      return;
+    }
+
+    if (tabs.length >= MAX_TABS) return;
+
+    const newTab: Tab = {
+      id: tabId,
+      type: "er-diagram",
+      title: `ER: ${schema}`,
+      schema,
+      isPreview: false,
+      isDirty: false,
+      state: {},
     };
 
     set({ tabs: [...tabs, newTab], activeTabId: tabId });

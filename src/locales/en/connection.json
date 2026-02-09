@@ -31,7 +31,25 @@
     "connectionString": "Connection String",
     "connectionStringPlaceholder": "postgres://user:pass@localhost:5432/dbname",
     "formMode": "Form",
-    "stringMode": "Connection String"
+    "stringMode": "Connection String",
+    "sshTunnel": "Use SSH Tunnel",
+    "sshHost": "SSH Host",
+    "sshHostPlaceholder": "bastion.example.com",
+    "sshPort": "SSH Port",
+    "sshUsername": "SSH Username",
+    "sshUsernamePlaceholder": "root",
+    "sshAuthMethod": "Authentication Method",
+    "sshAuth": {
+      "password": "Password",
+      "key": "Key File",
+      "key_passphrase": "Key + Passphrase"
+    },
+    "sshPassword": "SSH Password",
+    "sshKeyPath": "Key File Path",
+    "sshKeyPathPlaceholder": "~/.ssh/id_rsa",
+    "sshPassphrase": "Key Passphrase",
+    "sshPassphrasePlaceholder": "Key file passphrase",
+    "browse": "Browse"
   },
   "parsedInfo": {
     "host": "Host:",

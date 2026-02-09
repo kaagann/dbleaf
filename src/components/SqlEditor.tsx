@@ -23,10 +23,15 @@ import {
   Rows3,
   AlertCircle,
   CheckCircle2,
+  Search,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useConnectionStore } from "../stores/connectionStore";
 import { useDatabaseStore } from "../stores/databaseStore";
+import { useQueryHistoryStore } from "../stores/queryHistoryStore";
+import ExplainTree from "./ExplainTree";
+import type { ExplainResult } from "../types/explain";
+import { fromRustExplainResult } from "../types/explain";
 
 interface QueryColumn {
   name: string;
@@ -51,12 +56,15 @@ export default function SqlEditor({ initialSql = "", tabId: _tabId }: Props) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const executeRef = useRef<() => void>(() => {});
+  const explainRef = useRef<() => void>(() => {});
   const sqlCompartment = useRef(new Compartment());
-  const { activeConnectionId } = useConnectionStore();
+  const { activeConnectionId, connections } = useConnectionStore();
   const { completions } = useDatabaseStore();
   const [isExecuting, setIsExecuting] = useState(false);
   const [result, setResult] = useState<ExecuteQueryResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [explainResult, setExplainResult] = useState<ExplainResult | null>(null);
+  const [resultMode, setResultMode] = useState<"query" | "explain">("query");
 
   // Build CodeMirror schema object from completions
   const cmSchema = useMemo(() => {
@@ -81,6 +89,10 @@ export default function SqlEditor({ initialSql = "", tabId: _tabId }: Props) {
     setIsExecuting(true);
     setError(null);
     setResult(null);
+    setExplainResult(null);
+    setResultMode("query");
+
+    const conn = connections.find((c) => c.id === activeConnectionId);
 
     try {
       const res = await invoke<ExecuteQueryResult>("execute_query", {
@@ -88,15 +100,95 @@ export default function SqlEditor({ initialSql = "", tabId: _tabId }: Props) {
         sql: sqlText,
       });
       setResult(res);
+
+      // Record to query history
+      useQueryHistoryStore.getState().addEntry({
+        sql: sqlText,
+        connectionId: activeConnectionId,
+        connectionName: conn?.name ?? "",
+        database: conn?.database ?? "",
+        timestamp: new Date().toISOString(),
+        durationMs: res.execution_time_ms,
+        rowCount: res.row_count,
+        success: true,
+        errorMessage: null,
+      });
     } catch (err: any) {
-      setError(err?.toString() || t("sql.executeError"));
+      const errMsg = err?.toString() || t("sql.executeError");
+      setError(errMsg);
+
+      // Record error to query history
+      useQueryHistoryStore.getState().addEntry({
+        sql: sqlText,
+        connectionId: activeConnectionId,
+        connectionName: conn?.name ?? "",
+        database: conn?.database ?? "",
+        timestamp: new Date().toISOString(),
+        durationMs: 0,
+        rowCount: 0,
+        success: false,
+        errorMessage: errMsg,
+      });
     } finally {
       setIsExecuting(false);
     }
-  }, [activeConnectionId]);
+  }, [activeConnectionId, connections]);
 
-  // Keep ref up to date so the keymap always calls the latest function
+  const explainQuery = useCallback(async () => {
+    if (!activeConnectionId || !viewRef.current) return;
+    const sqlText = viewRef.current.state.doc.toString().trim();
+    if (!sqlText) return;
+
+    setIsExecuting(true);
+    setError(null);
+    setResult(null);
+    setExplainResult(null);
+    setResultMode("explain");
+
+    const conn = connections.find((c) => c.id === activeConnectionId);
+
+    try {
+      const raw = await invoke<unknown>("explain_query", {
+        connectionId: activeConnectionId,
+        sql: sqlText,
+      });
+      const res = fromRustExplainResult(raw);
+      setExplainResult(res);
+
+      useQueryHistoryStore.getState().addEntry({
+        sql: `EXPLAIN ANALYZE ${sqlText}`,
+        connectionId: activeConnectionId,
+        connectionName: conn?.name ?? "",
+        database: conn?.database ?? "",
+        timestamp: new Date().toISOString(),
+        durationMs: res.executionTimeMs,
+        rowCount: 0,
+        success: true,
+        errorMessage: null,
+      });
+    } catch (err: any) {
+      const errMsg = err?.toString() || t("sql.executeError");
+      setError(errMsg);
+
+      useQueryHistoryStore.getState().addEntry({
+        sql: `EXPLAIN ANALYZE ${sqlText}`,
+        connectionId: activeConnectionId,
+        connectionName: conn?.name ?? "",
+        database: conn?.database ?? "",
+        timestamp: new Date().toISOString(),
+        durationMs: 0,
+        rowCount: 0,
+        success: false,
+        errorMessage: errMsg,
+      });
+    } finally {
+      setIsExecuting(false);
+    }
+  }, [activeConnectionId, connections]);
+
+  // Keep refs up to date so the keymap always calls the latest functions
   executeRef.current = executeQuery;
+  explainRef.current = explainQuery;
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -106,6 +198,13 @@ export default function SqlEditor({ initialSql = "", tabId: _tabId }: Props) {
         key: "Mod-Enter",
         run: () => {
           executeRef.current();
+          return true;
+        },
+      },
+      {
+        key: "Mod-Shift-Enter",
+        run: () => {
+          explainRef.current();
           return true;
         },
       },
@@ -220,7 +319,7 @@ export default function SqlEditor({ initialSql = "", tabId: _tabId }: Props) {
           disabled={isExecuting}
           className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1 text-xs font-medium text-black hover:bg-accent-hover disabled:opacity-50 transition-colors"
         >
-          {isExecuting ? (
+          {isExecuting && resultMode === "query" ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
             <Play className="h-3.5 w-3.5" />
@@ -228,6 +327,22 @@ export default function SqlEditor({ initialSql = "", tabId: _tabId }: Props) {
           {t("sql.execute")}
         </button>
         <span className="text-[10px] text-text-muted">⌘+Enter</span>
+
+        <div className="w-px h-4 bg-border-primary mx-1" />
+
+        <button
+          onClick={explainQuery}
+          disabled={isExecuting}
+          className="flex items-center gap-1.5 rounded-md bg-info/20 border border-info/30 px-3 py-1 text-xs font-medium text-info hover:bg-info/30 disabled:opacity-50 transition-colors"
+        >
+          {isExecuting && resultMode === "explain" ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Search className="h-3.5 w-3.5" />
+          )}
+          {t("sql.explain")}
+        </button>
+        <span className="text-[10px] text-text-muted">{t("sql.explainTooltip")}</span>
       </div>
 
       {/* Editor */}
@@ -255,7 +370,15 @@ export default function SqlEditor({ initialSql = "", tabId: _tabId }: Props) {
           </div>
         )}
 
-        {result && !result.is_select && (
+        {/* EXPLAIN result */}
+        {resultMode === "explain" && explainResult && (
+          <div className="flex-1 overflow-hidden">
+            <ExplainTree result={explainResult} />
+          </div>
+        )}
+
+        {/* Query result - DML */}
+        {resultMode === "query" && result && !result.is_select && (
           <div className="flex flex-1 items-center justify-center">
             <div className="flex items-center gap-2 text-success">
               <CheckCircle2 className="h-4 w-4" />
@@ -269,7 +392,8 @@ export default function SqlEditor({ initialSql = "", tabId: _tabId }: Props) {
           </div>
         )}
 
-        {result && result.is_select && (
+        {/* Query result - SELECT */}
+        {resultMode === "query" && result && result.is_select && (
           <>
             {/* Result table */}
             <div className="flex-1 overflow-auto">
@@ -347,7 +471,7 @@ export default function SqlEditor({ initialSql = "", tabId: _tabId }: Props) {
           </>
         )}
 
-        {!isExecuting && !result && !error && (
+        {!isExecuting && !result && !error && !explainResult && (
           <div className="flex flex-1 items-center justify-center text-text-muted">
             <p className="text-xs">
               {t("sql.resultPlaceholder")}

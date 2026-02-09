@@ -8,6 +8,7 @@ import {
   HardDriveDownload,
   HardDriveUpload,
   Globe,
+  Lock,
 } from "lucide-react";
 import { useConnectionStore } from "../stores/connectionStore";
 import { useDatabaseStore } from "../stores/databaseStore";
@@ -103,6 +104,15 @@ export default function TopBar() {
                 : ""}
             </span>
           </div>
+          {activeConnection.useSshTunnel && (
+            <>
+              <span className="text-xs text-text-muted">|</span>
+              <div className="flex items-center gap-1 text-xs text-accent">
+                <Lock className="h-3 w-3" />
+                <span>SSH</span>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-1">

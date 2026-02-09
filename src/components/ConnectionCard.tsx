@@ -1,4 +1,4 @@
-import { Server, Pencil, Trash2, Clock, Loader2 } from "lucide-react";
+import { Server, Pencil, Trash2, Clock, Loader2, Shield } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { ConnectionConfig, ConnectionColor } from "../types/connection";
 
@@ -71,9 +71,17 @@ export default function ConnectionCard({
           <h3 className="truncate text-sm font-medium text-text-primary">
             {connection.name}
           </h3>
-          <p className="mt-0.5 truncate font-mono text-xs text-text-muted">
-            {connection.host}:{connection.port}
-            {connection.database ? `/${connection.database}` : ""}
+          <p className="mt-0.5 flex items-center gap-1.5 font-mono text-xs text-text-muted">
+            <span className="truncate">
+              {connection.host}:{connection.port}
+              {connection.database ? `/${connection.database}` : ""}
+            </span>
+            {connection.useSshTunnel && (
+              <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-accent/10 px-1 py-0.5 text-[10px] font-medium text-accent">
+                <Shield className="h-2.5 w-2.5" />
+                SSH
+              </span>
+            )}
           </p>
           <div className="mt-2 flex items-center gap-1 text-xs text-text-muted">
             <Clock className="h-3 w-3" />

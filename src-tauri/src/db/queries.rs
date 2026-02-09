@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 use tokio_postgres::Client;
@@ -962,4 +963,309 @@ pub async fn export_table_data(
         serde_json::to_string_pretty(&json_rows)
             .map_err(|e| format!("JSON dönüşümü başarısız: {}", e))
     }
+}
+
+// ── EXPLAIN ANALYZE ──────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExplainPlanNode {
+    pub node_type: String,
+    pub relation_name: Option<String>,
+    pub schema: Option<String>,
+    pub alias: Option<String>,
+    pub join_type: Option<String>,
+    pub index_name: Option<String>,
+    pub index_cond: Option<String>,
+    pub filter: Option<String>,
+    pub hash_cond: Option<String>,
+    pub merge_cond: Option<String>,
+    pub sort_key: Option<Vec<String>>,
+    pub startup_cost: f64,
+    pub total_cost: f64,
+    pub plan_rows: f64,
+    pub plan_width: i64,
+    pub actual_startup_time: Option<f64>,
+    pub actual_total_time: Option<f64>,
+    pub actual_rows: Option<f64>,
+    pub actual_loops: Option<f64>,
+    pub rows_removed_by_filter: Option<f64>,
+    pub shared_hit_blocks: Option<i64>,
+    pub shared_read_blocks: Option<i64>,
+    pub output: Option<Vec<String>>,
+    pub children: Vec<ExplainPlanNode>,
+    pub extra: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExplainResult {
+    pub plan: ExplainPlanNode,
+    pub planning_time: Option<f64>,
+    pub execution_time: Option<f64>,
+    pub total_cost: f64,
+    pub max_actual_time: f64,
+    pub execution_time_ms: u128,
+}
+
+fn parse_plan_node(val: &serde_json::Value) -> Result<ExplainPlanNode, String> {
+    let obj = val.as_object().ok_or("Plan node is not an object")?;
+
+    let children: Vec<ExplainPlanNode> = if let Some(plans) = obj.get("Plans") {
+        plans
+            .as_array()
+            .unwrap_or(&vec![])
+            .iter()
+            .map(parse_plan_node)
+            .collect::<Result<Vec<_>, _>>()?
+    } else {
+        vec![]
+    };
+
+    let known_keys = [
+        "Node Type", "Relation Name", "Schema", "Alias",
+        "Join Type", "Index Name", "Index Cond", "Filter",
+        "Hash Cond", "Merge Cond", "Sort Key",
+        "Startup Cost", "Total Cost", "Plan Rows", "Plan Width",
+        "Actual Startup Time", "Actual Total Time", "Actual Rows", "Actual Loops",
+        "Rows Removed by Filter",
+        "Shared Hit Blocks", "Shared Read Blocks",
+        "Output", "Plans",
+    ];
+    let mut extra = serde_json::Map::new();
+    for (k, v) in obj {
+        if !known_keys.contains(&k.as_str()) {
+            extra.insert(k.clone(), v.clone());
+        }
+    }
+
+    Ok(ExplainPlanNode {
+        node_type: obj.get("Node Type")
+            .and_then(|v| v.as_str()).unwrap_or("Unknown").to_string(),
+        relation_name: obj.get("Relation Name").and_then(|v| v.as_str()).map(String::from),
+        schema: obj.get("Schema").and_then(|v| v.as_str()).map(String::from),
+        alias: obj.get("Alias").and_then(|v| v.as_str()).map(String::from),
+        join_type: obj.get("Join Type").and_then(|v| v.as_str()).map(String::from),
+        index_name: obj.get("Index Name").and_then(|v| v.as_str()).map(String::from),
+        index_cond: obj.get("Index Cond").and_then(|v| v.as_str()).map(String::from),
+        filter: obj.get("Filter").and_then(|v| v.as_str()).map(String::from),
+        hash_cond: obj.get("Hash Cond").and_then(|v| v.as_str()).map(String::from),
+        merge_cond: obj.get("Merge Cond").and_then(|v| v.as_str()).map(String::from),
+        sort_key: obj.get("Sort Key").and_then(|v| v.as_array())
+            .map(|arr| arr.iter().filter_map(|x| x.as_str().map(String::from)).collect()),
+        startup_cost: obj.get("Startup Cost").and_then(|v| v.as_f64()).unwrap_or(0.0),
+        total_cost: obj.get("Total Cost").and_then(|v| v.as_f64()).unwrap_or(0.0),
+        plan_rows: obj.get("Plan Rows").and_then(|v| v.as_f64()).unwrap_or(0.0),
+        plan_width: obj.get("Plan Width").and_then(|v| v.as_i64()).unwrap_or(0),
+        actual_startup_time: obj.get("Actual Startup Time").and_then(|v| v.as_f64()),
+        actual_total_time: obj.get("Actual Total Time").and_then(|v| v.as_f64()),
+        actual_rows: obj.get("Actual Rows").and_then(|v| v.as_f64()),
+        actual_loops: obj.get("Actual Loops").and_then(|v| v.as_f64()),
+        rows_removed_by_filter: obj.get("Rows Removed by Filter").and_then(|v| v.as_f64()),
+        shared_hit_blocks: obj.get("Shared Hit Blocks").and_then(|v| v.as_i64()),
+        shared_read_blocks: obj.get("Shared Read Blocks").and_then(|v| v.as_i64()),
+        output: obj.get("Output").and_then(|v| v.as_array())
+            .map(|arr| arr.iter().filter_map(|x| x.as_str().map(String::from)).collect()),
+        children,
+        extra: serde_json::Value::Object(extra),
+    })
+}
+
+fn find_max_actual_time(node: &ExplainPlanNode) -> f64 {
+    let self_time = node.actual_total_time.unwrap_or(0.0);
+    let child_max = node.children.iter()
+        .map(find_max_actual_time)
+        .fold(0.0f64, f64::max);
+    f64::max(self_time, child_max)
+}
+
+pub async fn explain_query(
+    client: &Arc<Client>,
+    sql: &str,
+) -> Result<ExplainResult, String> {
+    let start = Instant::now();
+    let trimmed = sql.trim();
+
+    // Wrap in transaction so DML queries have no side effects
+    client.execute("BEGIN", &[]).await.map_err(|e| format_db_error(&e))?;
+
+    let explain_sql = format!("EXPLAIN (FORMAT JSON, ANALYZE, BUFFERS, VERBOSE) {}", trimmed);
+
+    let result = async {
+        let rows = client
+            .query(&explain_sql, &[])
+            .await
+            .map_err(|e| format_db_error(&e))?;
+
+        if rows.is_empty() {
+            return Err("EXPLAIN sonucu boş döndü".to_string());
+        }
+
+        let json_val: serde_json::Value = rows[0].get(0);
+
+        let arr = json_val.as_array()
+            .ok_or("EXPLAIN sonucu dizi formatında değil")?;
+        let root = arr.first()
+            .ok_or("EXPLAIN sonucu boş dizi")?;
+        let root_obj = root.as_object()
+            .ok_or("EXPLAIN kök elemanı obje değil")?;
+
+        let plan_val = root_obj.get("Plan")
+            .ok_or("EXPLAIN sonucunda Plan bulunamadı")?;
+
+        let plan = parse_plan_node(plan_val)?;
+
+        let planning_time = root_obj.get("Planning Time").and_then(|v| v.as_f64());
+        let execution_time = root_obj.get("Execution Time").and_then(|v| v.as_f64());
+
+        let total_cost = plan.total_cost;
+        let max_actual_time = find_max_actual_time(&plan);
+        let execution_time_ms = start.elapsed().as_millis();
+
+        Ok(ExplainResult {
+            plan,
+            planning_time,
+            execution_time,
+            total_cost,
+            max_actual_time,
+            execution_time_ms,
+        })
+    }.await;
+
+    // Always rollback to prevent DML side effects
+    client.execute("ROLLBACK", &[]).await.ok();
+
+    result
+}
+
+// ── ER Diagram ──────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErColumn {
+    pub name: String,
+    pub data_type: String,
+    pub is_primary_key: bool,
+    pub is_nullable: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErTable {
+    pub name: String,
+    pub columns: Vec<ErColumn>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErRelationship {
+    pub name: String,
+    pub source_table: String,
+    pub source_column: String,
+    pub target_table: String,
+    pub target_column: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErDiagramData {
+    pub tables: Vec<ErTable>,
+    pub relationships: Vec<ErRelationship>,
+}
+
+pub async fn get_er_diagram_data(
+    client: &Arc<Client>,
+    schema: &str,
+) -> Result<ErDiagramData, String> {
+    // 1. Get all columns with PK info for all tables in this schema
+    let col_rows = client
+        .query(
+            "SELECT
+                c.table_name,
+                c.column_name,
+                c.data_type,
+                c.is_nullable = 'YES' as is_nullable,
+                COALESCE(
+                    (SELECT true FROM pg_constraint con
+                     JOIN pg_class rel ON rel.oid = con.conrelid
+                     JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+                     JOIN pg_attribute att ON att.attrelid = rel.oid AND att.attnum = ANY(con.conkey)
+                     WHERE con.contype = 'p'
+                       AND nsp.nspname = $1
+                       AND rel.relname = c.table_name
+                       AND att.attname = c.column_name
+                     LIMIT 1),
+                    false
+                ) as is_primary_key,
+                c.ordinal_position
+             FROM information_schema.columns c
+             JOIN information_schema.tables t
+                ON t.table_schema = c.table_schema AND t.table_name = c.table_name
+             WHERE c.table_schema = $1
+                AND t.table_type = 'BASE TABLE'
+             ORDER BY c.table_name, c.ordinal_position",
+            &[&schema],
+        )
+        .await
+        .map_err(|e| format!("ER kolon verisi alınamadı: {}", e))?;
+
+    // Group columns by table
+    let mut table_map: HashMap<String, Vec<ErColumn>> = HashMap::new();
+    let mut table_order: Vec<String> = Vec::new();
+
+    for row in &col_rows {
+        let table_name: String = row.get(0);
+        if !table_map.contains_key(&table_name) {
+            table_order.push(table_name.clone());
+            table_map.insert(table_name.clone(), Vec::new());
+        }
+        table_map.get_mut(&table_name).unwrap().push(ErColumn {
+            name: row.get(1),
+            data_type: row.get(2),
+            is_primary_key: row.get(4),
+            is_nullable: row.get(3),
+        });
+    }
+
+    let tables: Vec<ErTable> = table_order
+        .into_iter()
+        .map(|name| {
+            let columns = table_map.remove(&name).unwrap_or_default();
+            ErTable { name, columns }
+        })
+        .collect();
+
+    // 2. Get all foreign key relationships in this schema
+    let fk_rows = client
+        .query(
+            "SELECT
+                tc.constraint_name,
+                tc.table_name as source_table,
+                kcu.column_name as source_column,
+                ccu.table_name as target_table,
+                ccu.column_name as target_column
+             FROM information_schema.table_constraints tc
+             JOIN information_schema.key_column_usage kcu
+                ON tc.constraint_name = kcu.constraint_name
+                AND tc.table_schema = kcu.table_schema
+             JOIN information_schema.constraint_column_usage ccu
+                ON ccu.constraint_name = tc.constraint_name
+                AND ccu.table_schema = tc.table_schema
+             WHERE tc.constraint_type = 'FOREIGN KEY'
+                AND tc.table_schema = $1
+             ORDER BY tc.constraint_name",
+            &[&schema],
+        )
+        .await
+        .map_err(|e| format!("ER ilişki verisi alınamadı: {}", e))?;
+
+    let relationships: Vec<ErRelationship> = fk_rows
+        .iter()
+        .map(|row| ErRelationship {
+            name: row.get(0),
+            source_table: row.get(1),
+            source_column: row.get(2),
+            target_table: row.get(3),
+            target_column: row.get(4),
+        })
+        .collect();
+
+    Ok(ErDiagramData {
+        tables,
+        relationships,
+    })
 }

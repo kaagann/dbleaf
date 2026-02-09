@@ -32,4 +32,5 @@ chrono = { version = "0.4", features = ["serde"] }
 dirs = "6"
 tauri-plugin-dialog = "2.6.0"
 tauri-plugin-shell = "2.3.5"
+ssh2 = { version = "0.9", features = ["vendored-openssl"] }
 

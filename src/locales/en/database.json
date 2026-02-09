@@ -4,7 +4,8 @@
     "views": "Views ({{count}})",
     "functions": "Functions ({{count}})",
     "sequences": "Sequences ({{count}})",
-    "emptySchema": "Empty schema"
+    "emptySchema": "Empty schema",
+    "erDiagram": "ER Diagram"
   },
   "structure": {
     "columns": "Columns",
@@ -45,7 +46,38 @@
     "execute": "Execute",
     "executeError": "Query execution failed",
     "placeholder": "Write your SQL query here... (⌘+Enter to execute)",
-    "resultPlaceholder": "Query results will appear here"
+    "resultPlaceholder": "Query results will appear here",
+    "explain": "Explain",
+    "explainTooltip": "⌘+Shift+Enter"
+  },
+  "explain": {
+    "planningTime": "Planning Time",
+    "executionTime": "Execution Time",
+    "totalCost": "Total Cost",
+    "cost": "Cost",
+    "time": "Time",
+    "rows": "Rows",
+    "detail": {
+      "nodeType": "Node Type",
+      "relation": "Table",
+      "schema": "Schema",
+      "alias": "Alias",
+      "joinType": "Join Type",
+      "indexName": "Index",
+      "startupCost": "Startup Cost",
+      "totalCost": "Total Cost",
+      "planRows": "Estimated Rows",
+      "actualRows": "Actual Rows",
+      "actualTime": "Actual Time",
+      "actualLoops": "Loop Count",
+      "filter": "Filter",
+      "indexCond": "Index Condition",
+      "hashCond": "Hash Condition",
+      "rowsRemovedByFilter": "Rows Removed by Filter",
+      "sharedHitBlocks": "Shared Hit Blocks",
+      "sharedReadBlocks": "Shared Read Blocks",
+      "extraFields": "Extra Fields"
+    }
   },
   "tabs": {
     "newQuery": "New query tab (⌘T)",
@@ -56,5 +88,59 @@
     "or": "or",
     "newQueryTab": "new query tab",
     "open": "open"
+  },
+  "history": {
+    "title": "Query History",
+    "searchPlaceholder": "Search queries...",
+    "filterAll": "All",
+    "filterFavorites": "Favorites",
+    "filterErrors": "Errors",
+    "filterSlow": "Slow",
+    "empty": "No query history yet",
+    "emptyDesc": "Queries you execute in the SQL editor will appear here",
+    "clearHistory": "Clear History",
+    "clearConfirm": "All query history will be deleted. Are you sure?",
+    "rowCount": "{{count}} rows",
+    "openInEditor": "Open in Editor",
+    "errorLabel": "Error"
+  },
+  "palette": {
+    "placeholder": "Search tables, views, or commands...",
+    "noResults": "No results found",
+    "categories": {
+      "table": "Tables",
+      "view": "Views",
+      "function": "Functions",
+      "sequence": "Sequences",
+      "tab": "Open Tabs",
+      "action": "Actions"
+    },
+    "newQuery": "New Query Tab",
+    "openHistory": "Query History",
+    "closeAllTabs": "Close All Tabs",
+    "switchTab": "Switch to tab",
+    "rows": "~{{count}} rows",
+    "runQuery": "Run Query",
+    "runQueryHint": "Show quick results",
+    "openInEditorAction": "Open in Editor",
+    "executing": "Executing...",
+    "quickResults": "Quick Results",
+    "resultRows": "{{count}} rows",
+    "resultAffected": "{{count}} rows affected",
+    "moreRows": "+{{count}} more rows...",
+    "openFullResults": "Open full results in editor"
+  },
+  "erDiagram": {
+    "title": "ER Diagram",
+    "loading": "Loading diagram...",
+    "empty": "No tables found in this schema",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetZoom": "Reset",
+    "fitToScreen": "Fit to screen",
+    "pkLabel": "PK",
+    "fkLabel": "FK",
+    "columns": "{{count}} columns",
+    "relationships": "{{count}} relationships"
   }
 }

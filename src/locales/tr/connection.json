@@ -31,7 +31,25 @@
     "connectionString": "Connection String",
     "connectionStringPlaceholder": "postgres://user:pass@localhost:5432/dbname",
     "formMode": "Form",
-    "stringMode": "Connection String"
+    "stringMode": "Connection String",
+    "sshTunnel": "SSH Tunnel Kullan",
+    "sshHost": "SSH Host",
+    "sshHostPlaceholder": "bastion.example.com",
+    "sshPort": "SSH Port",
+    "sshUsername": "SSH Kullanıcı Adı",
+    "sshUsernamePlaceholder": "root",
+    "sshAuthMethod": "Doğrulama Yöntemi",
+    "sshAuth": {
+      "password": "Şifre",
+      "key": "Anahtar Dosyası",
+      "key_passphrase": "Anahtar + Parola"
+    },
+    "sshPassword": "SSH Şifresi",
+    "sshKeyPath": "Anahtar Dosyası Yolu",
+    "sshKeyPathPlaceholder": "~/.ssh/id_rsa",
+    "sshPassphrase": "Anahtar Parolası",
+    "sshPassphrasePlaceholder": "Anahtar dosyası parolası",
+    "browse": "Göz At"
   },
   "parsedInfo": {
     "host": "Host:",

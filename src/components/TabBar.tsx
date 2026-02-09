@@ -4,6 +4,7 @@ import {
   Eye,
   TerminalSquare,
   Columns3,
+  History,
   Plus,
   X,
 } from "lucide-react";
@@ -31,6 +32,8 @@ export default function TabBar() {
         return <TerminalSquare className="h-3 w-3 shrink-0" />;
       case "structure":
         return <Columns3 className="h-3 w-3 shrink-0" />;
+      case "history":
+        return <History className="h-3 w-3 shrink-0" />;
     }
   }
 

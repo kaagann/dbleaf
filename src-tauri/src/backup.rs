@@ -57,6 +57,7 @@ pub fn backup_database(
     config: &ConnectionConfig,
     format: &str,
     output_path: &str,
+    tunnel_port: Option<u16>,
 ) -> Result<BackupResult, String> {
     let pg_dump = find_pg_bin("pg_dump")?;
 
@@ -67,9 +68,15 @@ pub fn backup_database(
         _ => "p",
     };
 
+    let (host, port_str) = if let Some(lp) = tunnel_port {
+        ("127.0.0.1".to_string(), lp.to_string())
+    } else {
+        (config.host.clone(), config.port.to_string())
+    };
+
     let mut cmd = Command::new(&pg_dump);
-    cmd.arg("-h").arg(&config.host)
-        .arg("-p").arg(config.port.to_string())
+    cmd.arg("-h").arg(&host)
+        .arg("-p").arg(&port_str)
         .arg("-U").arg(&config.username)
         .arg("-d").arg(&config.database)
         .arg("-F").arg(format_flag)
@@ -102,7 +109,14 @@ pub fn backup_database(
 pub fn restore_database(
     config: &ConnectionConfig,
     input_path: &str,
+    tunnel_port: Option<u16>,
 ) -> Result<RestoreResult, String> {
+    let (host, port_str) = if let Some(lp) = tunnel_port {
+        ("127.0.0.1".to_string(), lp.to_string())
+    } else {
+        (config.host.clone(), config.port.to_string())
+    };
+
     // Detect format by extension
     let is_sql = input_path.ends_with(".sql");
 
@@ -111,8 +125,8 @@ pub fn restore_database(
         let psql = find_pg_bin("psql")?;
 
         let mut cmd = Command::new(&psql);
-        cmd.arg("-h").arg(&config.host)
-            .arg("-p").arg(config.port.to_string())
+        cmd.arg("-h").arg(&host)
+            .arg("-p").arg(&port_str)
             .arg("-U").arg(&config.username)
             .arg("-d").arg(&config.database)
             .arg("-f").arg(input_path);
@@ -141,8 +155,8 @@ pub fn restore_database(
         let pg_restore = find_pg_bin("pg_restore")?;
 
         let mut cmd = Command::new(&pg_restore);
-        cmd.arg("-h").arg(&config.host)
-            .arg("-p").arg(config.port.to_string())
+        cmd.arg("-h").arg(&host)
+            .arg("-p").arg(&port_str)
             .arg("-U").arg(&config.username)
             .arg("-d").arg(&config.database)
             .arg("--verbose")
