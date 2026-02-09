@@ -40,7 +40,10 @@
     "editRow": "Edit Row",
     "addNewRow": "Add New Row",
     "setNull": "Set as NULL",
-    "defaultValue": "Default: {{value}}"
+    "defaultValue": "Default: {{value}}",
+    "emptyTable": "This table is empty",
+    "emptyTableDesc": "Get started by adding a new record",
+    "createRecord": "Create New Record"
   },
   "sql": {
     "execute": "Execute",

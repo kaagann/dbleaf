@@ -19,6 +19,8 @@ import { useConnectionStore } from "../stores/connectionStore";
 import { useDatabaseStore } from "../stores/databaseStore";
 import { useTabStore } from "../stores/tabStore";
 import AiSettings from "./AiSettings";
+import ResizeHandle from "./ResizeHandle";
+import { useResizable } from "../hooks/useResizable";
 import type { DisplayMessage, DisplayToolCall } from "../types/ai";
 
 // ── Content parsing ──
@@ -420,6 +422,12 @@ export default function AiChat() {
     settingsLoaded,
   } = useAiStore();
   const { activeConnectionId, connections } = useConnectionStore();
+  const { width: aiWidth, handleMouseDown: aiResizeDown } = useResizable({
+    initialWidth: 400,
+    minWidth: 300,
+    maxWidth: 700,
+    side: "right",
+  });
   const { schemas, tablesBySchema } = useDatabaseStore();
 
   const [input, setInput] = useState("");
@@ -480,7 +488,11 @@ export default function AiChat() {
 
   return (
     <>
-      <div className="flex h-full w-[400px] shrink-0 flex-col border-l border-border-primary bg-bg-secondary">
+      <ResizeHandle onMouseDown={aiResizeDown} />
+      <div
+        className="flex h-full shrink-0 flex-col border-l border-border-primary bg-bg-secondary"
+        style={{ width: aiWidth }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border-primary px-3 py-2">
           <div className="flex items-center gap-2">

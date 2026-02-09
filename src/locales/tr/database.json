@@ -40,7 +40,10 @@
     "editRow": "Satır Düzenle",
     "addNewRow": "Yeni Satır Ekle",
     "setNull": "NULL olarak ayarla",
-    "defaultValue": "Varsayılan: {{value}}"
+    "defaultValue": "Varsayılan: {{value}}",
+    "emptyTable": "Bu tablo henüz boş",
+    "emptyTableDesc": "Yeni bir kayıt ekleyerek başlayın",
+    "createRecord": "Yeni Kayıt Oluştur"
   },
   "sql": {
     "execute": "Çalıştır",

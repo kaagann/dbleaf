@@ -485,30 +485,22 @@ pub async fn query_table_data(
             })
             .collect()
     } else {
-        // Run a dummy query to get columns
-        let col_rows = client
-            .query(
-                &format!(
-                    "SELECT * FROM \"{}\".\"{}\" LIMIT 0",
-                    schema, table
-                ),
-                &[],
-            )
+        // Use prepare to get column metadata even with no rows
+        let stmt = client
+            .prepare(&format!(
+                "SELECT * FROM \"{}\".\"{}\" LIMIT 0",
+                schema, table
+            ))
             .await
             .map_err(|e| format!("Kolon bilgisi alınamadı: {}", e))?;
 
-        if let Some(stmt_cols) = col_rows.first() {
-            stmt_cols
-                .columns()
-                .iter()
-                .map(|col| TableColumnMeta {
-                    name: col.name().to_string(),
-                    data_type: col.type_().name().to_string(),
-                })
-                .collect()
-        } else {
-            Vec::new()
-        }
+        stmt.columns()
+            .iter()
+            .map(|col| TableColumnMeta {
+                name: col.name().to_string(),
+                data_type: col.type_().name().to_string(),
+            })
+            .collect()
     };
 
     // Convert rows to JSON values

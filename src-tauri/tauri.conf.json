@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "pg-manager",
+  "productName": "dbleaf",
   "version": "0.1.0",
   "identifier": "com.kagan.pg-manager",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "PG Manager",
+        "title": "dbleaf",
         "width": 1200,
         "height": 800,
         "minWidth": 900,

@@ -13,8 +13,10 @@ import QueryHistory from "../components/QueryHistory";
 import ERDiagram from "../components/ERDiagram";
 import AiChat from "../components/AiChat";
 import CommandPalette from "../components/CommandPalette";
+import ResizeHandle from "../components/ResizeHandle";
 import { useTranslation } from "react-i18next";
 import { useAiStore } from "../stores/aiStore";
+import { useResizable } from "../hooks/useResizable";
 
 export default function DatabaseView() {
   const navigate = useNavigate();
@@ -23,6 +25,12 @@ export default function DatabaseView() {
   const { togglePanel: toggleAiPanel } = useAiStore();
   const { t } = useTranslation("database");
   const [showPalette, setShowPalette] = useState(false);
+  const { width: sidebarWidth, handleMouseDown: sidebarResizeDown } = useResizable({
+    initialWidth: 256,
+    minWidth: 180,
+    maxWidth: 480,
+    side: "left",
+  });
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
@@ -77,9 +85,13 @@ export default function DatabaseView() {
       <TopBar />
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className="w-64 shrink-0 border-r border-border-primary bg-bg-secondary overflow-hidden">
+        <div
+          className="shrink-0 border-r border-border-primary bg-bg-secondary overflow-hidden"
+          style={{ width: sidebarWidth }}
+        >
           <Sidebar />
         </div>
+        <ResizeHandle onMouseDown={sidebarResizeDown} />
 
         {/* Main Content */}
         <div className="flex-1 overflow-hidden bg-bg-primary flex flex-col">

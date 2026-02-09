@@ -24,10 +24,12 @@ import {
   Save,
   Undo2,
   AlertTriangle,
-  PenLine,
+  Database,
 } from "lucide-react";
 import { useConnectionStore } from "../stores/connectionStore";
 import { useTranslation } from "react-i18next";
+import ResizeHandle from "./ResizeHandle";
+import { useResizable } from "../hooks/useResizable";
 
 interface TableDataResult {
   columns: { name: string; data_type: string }[];
@@ -83,6 +85,12 @@ export default function DataTable({ schema, table, tabId: _tabId, tableType }: P
 
   const editInputRef = useRef<HTMLInputElement>(null);
   const editSelectRef = useRef<HTMLSelectElement>(null);
+  const { width: editSidebarWidth, handleMouseDown: editResizeDown } = useResizable({
+    initialWidth: 360,
+    minWidth: 280,
+    maxWidth: 600,
+    side: "right",
+  });
 
   // Derived
   const pkColumns = columnMeta.filter((c) => c.is_primary_key);
@@ -640,10 +648,6 @@ export default function DataTable({ schema, table, tabId: _tabId, tableType }: P
                       </div>
                     </th>
                   ))}
-                  {/* Edit column */}
-                  {canEdit && (
-                    <th className="w-10 border-b border-r border-border-primary" />
-                  )}
                 </tr>
               ))}
             </thead>
@@ -651,10 +655,41 @@ export default function DataTable({ schema, table, tabId: _tabId, tableType }: P
               {isLoading ? (
                 <tr>
                   <td
-                    colSpan={(data?.columns.length || 1) + (canEdit ? 3 : 1)}
+                    colSpan={(data?.columns.length || 1) + (canEdit ? 2 : 1)}
                     className="py-12 text-center"
                   >
                     <Loader2 className="mx-auto h-6 w-6 animate-spin text-text-muted" />
+                  </td>
+                </tr>
+              ) : data && data.rows.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={(data.columns.length || 1) + (canEdit ? 2 : 1)}
+                    className="py-16 text-center"
+                  >
+                    <div className="flex flex-col items-center gap-3">
+                      <Database className="h-10 w-10 text-text-muted/40" />
+                      <div>
+                        <p className="text-sm font-medium text-text-secondary">
+                          {t("table.emptyTable")}
+                        </p>
+                        <p className="mt-1 text-xs text-text-muted">
+                          {t("table.emptyTableDesc")}
+                        </p>
+                      </div>
+                      {canEdit && (
+                        <button
+                          onClick={() => {
+                            setAddingRow(true);
+                            setNewRowValues({});
+                          }}
+                          className="mt-2 flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-black hover:bg-accent-hover transition-colors"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          {t("table.createRecord")}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -667,17 +702,29 @@ export default function DataTable({ schema, table, tabId: _tabId, tableType }: P
                   return (
                     <tr
                       key={row.id}
+                      onClick={() => {
+                        if (canEdit) {
+                          editSidebarRowIdx === rowIdx ? closeEditSidebar() : openEditSidebar(rowIdx);
+                        }
+                      }}
                       className={`transition-colors ${
-                        isSelected
-                          ? "bg-accent/10"
-                          : hasChanges
-                            ? "bg-warning/5"
-                            : "hover:bg-bg-hover/50"
+                        canEdit ? "cursor-pointer" : ""
+                      } ${
+                        editSidebarRowIdx === rowIdx
+                          ? "bg-accent/15"
+                          : isSelected
+                            ? "bg-accent/10"
+                            : hasChanges
+                              ? "bg-warning/5"
+                              : "hover:bg-bg-hover/50"
                       }`}
                     >
                       {/* Checkbox */}
                       {canEdit && (
-                        <td className="border-b border-r border-border-primary px-2 py-1 text-center">
+                        <td
+                          className="border-b border-r border-border-primary px-2 py-1 text-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <input
                             type="checkbox"
                             checked={isSelected}
@@ -812,19 +859,6 @@ export default function DataTable({ schema, table, tabId: _tabId, tableType }: P
                           </td>
                         );
                       })}
-                      {/* Edit button */}
-                      {canEdit && (
-                        <td className="border-b border-r border-border-primary px-1 py-1 text-center">
-                          <button
-                            onClick={() => openEditSidebar(rowIdx)}
-                            className="rounded p-0.5 text-text-muted opacity-0 group-hover:opacity-100 hover:text-text-primary hover:bg-bg-hover transition-all"
-                            title={tc("edit")}
-                            style={{ opacity: editSidebarRowIdx === rowIdx ? 1 : undefined }}
-                          >
-                            <PenLine className="h-3 w-3" />
-                          </button>
-                        </td>
-                      )}
                     </tr>
                   );
                 })
@@ -835,7 +869,12 @@ export default function DataTable({ schema, table, tabId: _tabId, tableType }: P
 
         {/* Edit Sidebar */}
         {editSidebarRowIdx !== null && data && (
-          <div className="w-[360px] shrink-0 border-l border-border-primary bg-bg-secondary overflow-y-auto">
+          <>
+          <ResizeHandle onMouseDown={editResizeDown} />
+          <div
+            className="shrink-0 border-l border-border-primary bg-bg-secondary overflow-y-auto"
+            style={{ width: editSidebarWidth }}
+          >
             <div className="flex items-center justify-between border-b border-border-primary px-4 py-2">
               <h3 className="text-xs font-semibold text-text-primary">
                 {t("table.editRow")}
@@ -961,11 +1000,17 @@ export default function DataTable({ schema, table, tabId: _tabId, tableType }: P
               })}
             </div>
           </div>
+          </>
         )}
 
         {/* Add Row Sidebar */}
         {addingRow && data && (
-          <div className="w-[360px] shrink-0 border-l border-border-primary bg-bg-secondary overflow-y-auto">
+          <>
+          <ResizeHandle onMouseDown={editResizeDown} />
+          <div
+            className="shrink-0 border-l border-border-primary bg-bg-secondary overflow-y-auto"
+            style={{ width: editSidebarWidth }}
+          >
             <div className="flex items-center justify-between border-b border-border-primary px-4 py-2">
               <h3 className="text-xs font-semibold text-text-primary">
                 {t("table.addNewRow")}
@@ -1083,6 +1128,7 @@ export default function DataTable({ schema, table, tabId: _tabId, tableType }: P
               </div>
             </div>
           </div>
+          </>
         )}
       </div>
 
