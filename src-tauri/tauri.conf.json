@@ -25,13 +25,22 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["dmg", "nsis"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDIzNzBFMTMzRTcwMzU5RDQKUldUVVdRUG5NK0Z3STFZdWtGQWlSWXlKVjlURHBYVkpuUCtIYWtaV092dUFlRHo4ZDdaOHBMQlIK",
+      "endpoints": [
+        "https://github.com/kaagann/dbleaf/releases/latest/download/latest.json"
+      ]
+    }
   }
 }
